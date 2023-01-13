@@ -21,7 +21,8 @@ describe('Persistent Node Chat Server', () => {
     /* Empty the db table before all tests so that multiple tests
      * (or repeated runs of the tests)  will not fail when they should be passing
      * or vice versa */
-    dbConnection.query(`truncate ${tablename}`, done);
+    dbConnection.query(`truncate table ${tablename}`, done);
+    dbConnection.query('truncate table users', done);
   }, 6500);
 
   afterAll(() => {
@@ -29,7 +30,7 @@ describe('Persistent Node Chat Server', () => {
   });
 
   it('Should insert posted messages to the DB', (done) => {
-    const username = 'Valjean';
+    const username = 'Test_User1';
     const message = 'In mercy\'s name, three days is all I need.';
     const roomname = 'Hello';
     // Create a user on the chat server database.
@@ -51,8 +52,6 @@ describe('Persistent Node Chat Server', () => {
             throw err;
           }
 
-          console.log('results: ', results);
-
           // Should have one result:
           expect(results.length).toEqual(1);
 
@@ -70,9 +69,12 @@ describe('Persistent Node Chat Server', () => {
     // Let's insert a message into the db
     const queryString = 'INSERT INTO messages (text, username, roomname) VALUES ( "this is a test", "jerrod", "lobby")';
     const queryArgs = [];
+    const message = 'this is a test';
+    const roomname = 'lobby';
+
     /* TODO: The exact query string and query args to use here
      * depend on the schema you design, so I'll leave them up to you. */
-    dbConnection.query(queryString, queryArgs, (err) => {
+    dbConnection.query(queryString, (err) => {
       if (err) {
         throw err;
       }
@@ -81,8 +83,11 @@ describe('Persistent Node Chat Server', () => {
       axios.get(`${API_URL}/messages`)
         .then((response) => {
           const messageLog = response.data;
-          expect(messageLog[0].text).toEqual(message);
-          expect(messageLog[0].roomname).toEqual(roomname);
+
+          console.log('message log: ', messageLog);
+
+          expect(messageLog[1].text).toEqual(message);
+          expect(messageLog[1].roomname).toEqual(roomname);
           done();
         })
         .catch((err) => {
